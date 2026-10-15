@@ -1,0 +1,67 @@
+# 💧 AcquaCEG
+
+🇧🇷 **Português**
+
+O **AcquaCEG** é um sistema de monitoramento da qualidade da água desenvolvido com o objetivo de realizar a aquisição, supervisão e registro de parâmetros físico-químicos em tempo real. O projeto busca oferecer uma plataforma capaz de auxiliar no acompanhamento das condições da água, permitindo identificar alterações, registrar medições e fornecer alertas para apoiar a tomada de decisão.
+
+Desenvolvida ao longo de aproximadamente **3 meses**, a primeira versão do sistema integra um **Arduino Uno** a uma aplicação desktop responsável por receber as medições via comunicação serial, exibi-las em tempo real e armazená-las em banco de dados para consultas futuras.
+
+## 🔬 Parâmetros monitorados
+
+O sistema realiza o monitoramento de quatro parâmetros da água:
+
+- 🧪 **pH** — utilizando o módulo **PH-4502C**;
+- ⚡ **Condutividade elétrica (TDS)** — utilizando o **Water Quality Sensor Module (TDS Meter v1.0)**;
+- 🌡️ **Temperatura da água** — utilizando o sensor **DS18B20**;
+- 💧 **Nível mínimo da água** — utilizando o sensor **XKC-Y25-PNP**, responsável por indicar se existe água suficiente para que as medições sejam realizadas com segurança.
+
+## 📊 Funcionalidades
+
+- 📡 Aquisição de dados em tempo real via comunicação serial;
+- 🖥️ Visualização das medições em uma aplicação desktop;
+- 💾 Registro histórico das leituras em banco de dados;
+- 🚨 Alertas visuais e sonoros para condições anormais;
+- 📈 Supervisão contínua dos parâmetros monitorados.
+
+## 🎓 Apresentação
+
+O projeto foi apresentado na **ETEC Fernando Prestes**, durante o evento **"Visite"**, onde seu funcionamento foi demonstrado ao público. A recepção foi extremamente positiva por parte de alunos, professores e visitantes, destacando o potencial da proposta para aplicações nas áreas de automação, monitoramento ambiental e qualidade da água.
+
+## 🚀 Próximos passos
+
+O AcquaCEG continua em evolução. As próximas versões terão uma arquitetura baseada em **IoT**, utilizando **ESP32**, **MQTT**, um **backend em Python (FastAPI)** e dashboards de supervisão, tornando a plataforma mais escalável, modular e preparada para futuras aplicações.
+
+---
+
+# 💧 AcquaCEG
+
+🇺🇸 **English**
+
+**AcquaCEG** is a water quality monitoring system designed to acquire, supervise, and record physicochemical parameters in real time. The project aims to provide a platform capable of monitoring water conditions, detecting anomalies, storing historical measurements, and supporting decision-making through alerts and continuous supervision.
+
+Developed over approximately **3 months**, the first version integrates an **Arduino Uno** with a desktop application responsible for receiving sensor data through serial communication, displaying measurements in real time, and storing them in a database.
+
+## 🔬 Monitored Parameters
+
+The system currently monitors four water parameters:
+
+- 🧪 **pH** — using the **PH-4502C** module;
+- ⚡ **Electrical Conductivity (TDS)** — using the **Water Quality Sensor Module (TDS Meter v1.0)**;
+- 🌡️ **Water Temperature** — using the **DS18B20** sensor;
+- 💧 **Minimum Water Level** — using the **XKC-Y25-PNP** sensor, which indicates whether there is sufficient water for safe measurements.
+
+## 📊 Features
+
+- 📡 Real-time data acquisition via serial communication;
+- 🖥️ Desktop application for real-time visualization;
+- 💾 Historical data storage in a database;
+- 🚨 Visual and audible alerts for abnormal conditions;
+- 📈 Continuous supervision of monitored parameters.
+
+## 🎓 Presentation
+
+The project was presented at **ETEC Fernando Prestes** during the **"Visite"** event, where its operation was demonstrated to visitors. It received very positive feedback from students, teachers, and attendees, highlighting its potential for applications in automation, environmental monitoring, and water quality supervision.
+
+## 🚀 Future Development
+
+AcquaCEG is continuously evolving. Future versions will adopt an **IoT-based architecture**, featuring **ESP32**, **MQTT**, a **Python (FastAPI) backend**, and supervisory dashboards, making the platform more scalable, modular, and ready for future applications.

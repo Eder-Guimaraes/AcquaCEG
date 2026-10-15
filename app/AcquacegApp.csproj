@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>app</RootNamespace>
+    <!-- NU1903: SQLitePCLRaw.lib.e_sqlite3 traz uma versao antiga do SQLite (CVE-2025-6965).
+         O Microsoft.Data.Sqlite ainda nao atualizou essa dependencia. Nao ha exposicao real
+         aqui: o app roda local, single-user, e todo SQL e fixo/parametrizado no codigo -
+         nao existe entrada externa virando SQL dinamico. Suprimido so por limpeza do build.
+         WFO1000: aviso do analisador de seguranca do Designer visual do WinForms sobre
+         serializacao de propriedades publicas - nao se aplica aqui, pois GraficoBarras
+         e criado via codigo, nunca arrastado no Designer. -->
+    <NoWarn>$(NoWarn);NU1903;WFO1000</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>

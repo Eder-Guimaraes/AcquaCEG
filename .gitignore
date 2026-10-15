@@ -60,10 +60,10 @@ Publish/
 # PlatformIO
 #############################
 
-.pio/
+firmware/.pio/
 
 #############################
 # VSCode
 #############################
 
-.vscode/
+firmware/.vscode/

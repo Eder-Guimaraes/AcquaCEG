@@ -1,12 +1,14 @@
 from fastapi import APIRouter
 
+from app.schemas.sensor import SensorData
+
 router = APIRouter()
 
-@router.get("/latest")
+@router.get("/latest", response_model = SensorData)
 def read_latest():
-    return {
-                "temperature": 25.4,
-                "ph": 7.02,
-                "conductivity": 910,
-                "waterLevel": True
-            }
+    return SensorData (
+        temperature = 24.5,
+        ph = 7.0,
+        conductivity = 160.0,
+        waterLevel = True
+    )

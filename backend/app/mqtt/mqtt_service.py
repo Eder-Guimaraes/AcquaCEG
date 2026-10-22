@@ -49,9 +49,6 @@ class MQTTService:
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
             print(f"Erro ao interpretar mensagem MQTT: {e}")
 
-    def get_latest(self):
-        return self.latest_data
-
     def disconnect(self):
         self.client.loop_stop()
         self.client.disconnect()

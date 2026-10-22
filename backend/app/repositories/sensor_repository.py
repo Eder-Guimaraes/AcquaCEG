@@ -23,5 +23,38 @@ class SensorRepository:
             .first()
         )
 
-    def get_all(self):
-        return self.db.query(SensorReading).all()
+    def get_all(self, page: int, limit: int):
+
+        offset = (page - 1) * limit
+
+        return (
+            self.db.query(SensorReading)
+            .order_by(SensorReading.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+    def get_by_id(self, reading_id: int):
+
+        return (
+            self.db.query(SensorReading)
+            .filter(SensorReading.id == reading_id)
+            .first()
+        )
+
+    def delete(self, reading_id: int):
+
+        reading = (
+            self.db.query(SensorReading)
+            .filter(SensorReading.id == reading_id)
+            .first()
+        )
+
+        if reading is None:
+            return None
+
+        self.db.delete(reading)
+        self.db.commit()
+
+        return reading

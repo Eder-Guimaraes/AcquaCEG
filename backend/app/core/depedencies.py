@@ -12,4 +12,8 @@ sensor_service = SensorService(repository)
 mqtt_service = MQTTService()
 
 mqtt_service.set_sensor_service(sensor_service)
-mqtt_service.connect()
+try:
+    mqtt_service.connect()
+    print("MQTT conectado.")
+except Exception as e:
+    print(f"MQTT indisponível: {e}")

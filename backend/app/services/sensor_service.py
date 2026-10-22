@@ -40,20 +40,7 @@ class SensorService:
 
         return temperature, ph, condut, waterLevel
 
-    def get_latest(self):
-        reading = self.repository.get_latest()
-
-        if reading is None:
-            return None
-
-        return SensorData(
-            temperature=reading.temperature,
-            ph=reading.ph,
-            conductivity=reading.conductivity,
-            waterLevel=reading.water_level
-        )
         
-
     def save_reading(self, raw_data):
         temperature, ph, condut, water_level = self._convert_raw_data(raw_data)
 
@@ -67,3 +54,49 @@ class SensorService:
         saved = self.repository.save(reading)
 
         return saved
+
+
+    def get_latest(self):
+            reading = self.repository.get_latest()
+    
+            if reading is None:
+                return None
+    
+            return SensorData(
+                temperature=reading.temperature,
+                ph=reading.ph,
+                conductivity=reading.conductivity,
+                waterLevel=reading.water_level
+            )
+
+    def get_all(self, page: int, limit: int):
+
+        readings = self.repository.get_all(page, limit)
+
+        return [
+            SensorData(
+                temperature=r.temperature,
+                ph=r.ph,
+                conductivity=r.conductivity,
+                waterLevel=r.water_level
+            )
+
+            for r in readings
+        ]
+
+    def get_by_id(self, reading_id: int):
+
+        reading = self.repository.get_by_id(reading_id)
+
+        if reading is None:
+            return None
+
+        return SensorData(
+            temperature=reading.temperature,
+            ph=reading.ph,
+            conductivity=reading.conductivity,
+            waterLevel=reading.water_level
+        )
+
+    def delete_reading(self, reading_id: int):
+        return self.repository.delete(reading_id)

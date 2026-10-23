@@ -67,3 +67,5 @@ firmware/.pio/
 #############################
 
 firmware/.vscode/
+
+.env

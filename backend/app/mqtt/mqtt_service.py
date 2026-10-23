@@ -1,10 +1,11 @@
 import json
 import paho.mqtt.client as mqtt
 
+from app.core.config import MQTT_TOPIC, MQTT_PORT, MQTT_BROKER
 
 class MQTTService:
 
-    def __init__(self, broker="192.168.1.95", port=1883):
+    def __init__(self, broker=MQTT_BROKER, port=MQTT_PORT):
         self.broker = broker
         self.port = port
         self.latest_data = {}
@@ -22,7 +23,7 @@ class MQTTService:
         self.sensor_service = sensor_service
 
     def connect(self):
-        self.client.connect(self.broker, self.port, keepalive=60)
+        self.client.connect_async(self.broker, self.port, keepalive=60)
         self.client.loop_start()
 
     def on_connect(self, client, userdata, flags, reason_code, properties):
@@ -31,7 +32,7 @@ class MQTTService:
         if reason_code == 0:
             print("Conectado ao broker MQTT!")
             client.subscribe(
-                "acquaceg/devices/arduino-01/sensors/raw",
+                MQTT_TOPIC,
                 qos=1
             )
         else:
@@ -47,7 +48,9 @@ class MQTTService:
                 self.sensor_service.save_reading(data)
 
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
-            print(f"Erro ao interpretar mensagem MQTT: {e}")
+            print(f"Payload inválido: {e}")
+        except Exception as e:
+            print(f"Erro ao processar leitura: {e}")
 
     def disconnect(self):
         self.client.loop_stop()

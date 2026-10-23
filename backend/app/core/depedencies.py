@@ -3,12 +3,7 @@ from app.repositories.sensor_repository import SensorRepository
 from app.services.sensor_service import SensorService
 from app.mqtt.mqtt_service import MQTTService
 
-db = SessionLocal()
-
-repository = SensorRepository(db)
-
-sensor_service = SensorService(repository)
-
+sensor_service = SensorService(SessionLocal)
 mqtt_service = MQTTService()
 
 mqtt_service.set_sensor_service(sensor_service)

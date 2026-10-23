@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
-from app.schemas.sensor import SensorData
+from app.schemas.sensor import SensorData, SensorReadingOut
 from app.core.depedencies import sensor_service
 
 router = APIRouter()
@@ -18,20 +18,15 @@ def read_latest():
 
     return reading
 
-@router.get("/readings", response_model=list[SensorData])
-def all_reads(page: int = 1, limit: int = 100):
+@router.get("/readings", response_model=list[SensorReadingOut])
+def all_reads(
+    page: int = Query(1, ge=1),
+    limit: int = Query(100, ge=1, le=500)
+):
 
-    readings = sensor_service.get_all(page, limit)
+    return sensor_service.get_all(page, limit)
 
-    if not readings:
-        raise HTTPException(
-            status_code=404,
-            detail="Nenhuma leitura encontrada."
-        )
-
-    return readings
-
-@router.get("/readings/{reading_id}", response_model=SensorData)
+@router.get("/readings/{reading_id}", response_model=SensorReadingOut)
 def get_reading(reading_id: int):
 
     reading = sensor_service.get_by_id(reading_id)

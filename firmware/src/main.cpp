@@ -1,123 +1,175 @@
 #include <Arduino.h>
+
+#include "Pins.h"
 #include "Config.h"
-#include "Sensores.h"
-#include "Display.h"
-#include "Alertas.h"
-#include "Dados.h"
-#include "Controle.h"
 
-// ==============================
-// Bibliotecas
-// ==============================
+#include <PhSensor.h>
+#include <CondutSensor.h>
+#include <TemperatureSensor.h>
+#include <LevelWaterSensor.h>
 
-#include <LiquidCrystal_I2C.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+#include <WifiManager.h>
+#include <MqttManager.h>
 
-// ==============================
-// Objetos
-// ==============================
+// Sensores
+PhSensor sensorPH(PH);
+CondutSensor sensorCondutividade(CONDUCTIVITY);
+SensorTemperatura sensorTemperatura(TEMPERATURE);
+SensorNivelAgua sensorNivelAgua(WATER);
 
-LiquidCrystal_I2C display(0x27, 16, 2);
+// Wi-Fi
+WifiManager wifiManager;
 
-OneWire oneWire(SENSOR_TEMPERATURA);
-DallasTemperature sensors(&oneWire);
+// MQTT
+MqttManager mqttManager(wifiManager.getClient());
 
-// Tempo (ms) que a tela de alerta/status fica visivel antes de passar
-// para as telas de dados (pH/condutividade/temperatura).
-#define TEMPO_ALERTA_MS 2000
+// Configurações
+const unsigned long TEMPO_TURNO = 5000;
+const unsigned long INTERVALO_LEITURA = 100;
+const uint8_t CICLOS_AQUECIMENTO = 2;
 
-// ==============================
-// Setup
-// ==============================
+// Controle
+bool turnoPH = true;
+
+bool aquecimentoConcluido = false;
+uint8_t ciclosConcluidos = 0;
+
+unsigned long inicioTurno = 0;
+unsigned long ultimaLeitura = 0;
+
+float ultimoPH = NAN;
+float ultimaCondutividade = NAN;
 
 void setup()
 {
-  Serial.begin(9600);
+    Serial.begin(115200);
 
-  inicializarDisplay(display);
-  inicializarControle();
-  sensors.begin();
+    // Wi-Fi
+    wifiManager.begin();
+    wifiManager.connect(WIFI_SSID, WIFI_PASSWORD);
 
-  pinMode(BUZZER, OUTPUT);
-  pinMode(LED_BUZZER, OUTPUT);
+    // MQTT
+    mqttManager.begin();
+    mqttManager.connect(MQTT_CLIENT_ID);
 
-  pinMode(SENSOR_AGUA, INPUT);
-  pinMode(SENSOR_PH, INPUT);
-  pinMode(SENSOR_CONDUTIVIDADE, INPUT);
+    // Sensores
+    sensorPH.begin();
+    sensorCondutividade.begin();
+    sensorTemperatura.begin();
+    sensorNivelAgua.begin();
 
-  delay(50); // pequeno atraso para a porta serial estabilizar
-  Serial.println(sistemaLigado() ? "STATUS:LIGADO" : "STATUS:DESLIGADO");
+    sensorTemperatura.solicitarLeitura();
+    sensorPH.iniciarLeituras();
+
+    inicioTurno = millis();
+
+    Serial.println("Iniciando aquecimento...");
 }
-
-// ==============================
-// Loop
-// ==============================
 
 void loop()
 {
-  // Confere se chegou algum comando do painel no PC
-  if (Serial.available() > 0)
-  {
-    char comando = Serial.read();
+    unsigned long agora = millis();
 
-    if (comando == 'P' && sistemaLigado())
+    // Mantém conexões
+    wifiManager.reconnect();
+
+    if (wifiManager.isConnected())
     {
-      definirSistemaLigado(false);
+        mqttManager.reconnect(MQTT_CLIENT_ID);
+        mqttManager.loop();
     }
-    else if (comando == 'R' && !sistemaLigado())
+
+    // Leitura dos sensores
+    if (agora - ultimaLeitura >= INTERVALO_LEITURA)
     {
-      definirSistemaLigado(true);
+        ultimaLeitura = agora;
+
+        if (turnoPH)
+            sensorPH.coletarAmostra();
+        else
+            sensorCondutividade.coletarAmostra();
     }
-  }
 
-  // Detecta transicao de estado (ligado <-> desligado) vinda do comando
-  // serial e trata os efeitos colaterais (silenciar alarme, avisar no
-  // display) uma unica vez.
-  static bool ligadoAnterior = true;
-  bool ligado = sistemaLigado();
-
-  if (ligado != ligadoAnterior)
-  {
-    if (!ligado)
+    // Alternância entre sensores
+    if (agora - inicioTurno >= TEMPO_TURNO)
     {
-      noTone(BUZZER);
-      digitalWrite(LED_BUZZER, LOW);
-      mostrarMensagem(display, "SISTEMA", "DESLIGADO");
+        inicioTurno = agora;
+
+        if (turnoPH)
+        {
+            ultimoPH = sensorPH.calcularMediaADC();
+
+            Serial.print("ADC pH: ");
+            Serial.println(ultimoPH);
+
+            sensorCondutividade.iniciarLeituras();
+        }
+        else
+        {
+            ultimaCondutividade = sensorCondutividade.calcularMediaADC();
+
+            Serial.print("ADC Condutividade: ");
+            Serial.println(ultimaCondutividade);
+
+            float temperatura = sensorTemperatura.lerGraus();
+            bool temAgua = sensorNivelAgua.temAgua();
+
+            sensorTemperatura.solicitarLeitura();
+
+            if (!aquecimentoConcluido)
+            {
+                ciclosConcluidos++;
+
+                Serial.print("Aquecimento ");
+                Serial.print(ciclosConcluidos);
+                Serial.print("/");
+                Serial.println(CICLOS_AQUECIMENTO);
+
+                if (ciclosConcluidos >= CICLOS_AQUECIMENTO)
+                {
+                    aquecimentoConcluido = true;
+                    Serial.println("Sistema pronto.");
+                }
+            }
+            else
+            {
+                Serial.println("========== MQTT ==========");
+
+                Serial.print("pH ADC: ");
+                Serial.println(ultimoPH);
+
+                Serial.print("Condutividade ADC: ");
+                Serial.println(ultimaCondutividade);
+
+                Serial.print("Temperatura: ");
+                Serial.println(temperatura);
+
+                Serial.print("Água: ");
+                Serial.println(temAgua ? "SIM" : "NAO");
+
+                // Monta o JSON
+                String payload = "{";
+                payload += "\"adc_ph\":" + String(ultimoPH, 0);
+                payload += ",\"adc_condut\":" + String(ultimaCondutividade, 0);
+                payload += ",\"temperature\":" + String(temperatura, 2);
+                payload += ",\"water_level\":" + String(temAgua ? 1 : 0);
+                payload += "}";
+
+                // Exibe o JSON
+                Serial.println(payload);
+
+                // Publica no MQTT
+                mqttManager.publish(
+                    MQTT_TOPIC,
+                    payload.c_str()
+                );
+
+                Serial.println("==========================");
+            }
+
+            sensorPH.iniciarLeituras();
+        }
+
+        turnoPH = !turnoPH;
     }
-    ligadoAnterior = ligado;
-  }
-
-  if (!ligado)
-  {
-    // Sistema desligado: nao le sensores, nao manda DATA, so espera
-    // o comando 'R'.
-    delay(200);
-    return;
-  }
-
-  // Obter os dados
-  bool nivelAgua = lerNivelAgua();
-  float condutividade = lerCondut();
-  float temperatura = lerTemperatura(sensors);
-  float ph = lerPH();
-
-  Serial.print("DATA:");
-  Serial.print(nivelAgua ? 1 : 0);
-  Serial.print(",");
-  Serial.print(condutividade);
-  Serial.print(",");
-  Serial.print(temperatura);
-  Serial.print(",");
-  Serial.println(ph);
-
-  // Verificar (mostra alerta ou "sistema normal" no display)
-  bool sistemaOK = verificarSistema(display, nivelAgua, condutividade, temperatura, ph);
-
-  delay(TEMPO_ALERTA_MS);
-
-  if (sistemaOK)
-  {
-    dadosSistema(display, condutividade, temperatura, ph);
-  }
 }

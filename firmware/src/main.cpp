@@ -50,7 +50,7 @@ void setup()
 
     // MQTT
     mqttManager.begin();
-    mqttManager.connect(MQTT_CLIENT_ID);
+    mqttManager.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD);
 
     // Sensores
     sensorPH.begin();
@@ -75,7 +75,7 @@ void loop()
 
     if (wifiManager.isConnected())
     {
-        mqttManager.reconnect(MQTT_CLIENT_ID);
+        mqttManager.reconnect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD);
         mqttManager.loop();
     }
 
@@ -159,10 +159,7 @@ void loop()
                 Serial.println(payload);
 
                 // Publica no MQTT
-                mqttManager.publish(
-                    MQTT_TOPIC,
-                    payload.c_str()
-                );
+                mqttManager.publish(payload.c_str());
 
                 Serial.println("==========================");
             }

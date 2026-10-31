@@ -10,11 +10,11 @@ void MqttManager::begin()
     _client.setServer(_host, _port);
 }
 
-bool MqttManager::connect(const char* clientId)
+bool MqttManager::connect(const char* clientId, const char* username, const char* password)
 {
     Serial.println("Conectando ao broker MQTT...");
 
-    if (_client.connect(clientId))
+    if (_client.connect(clientId, username, password))
     {
         Serial.println("Broker conectado.");
         return true;
@@ -31,7 +31,7 @@ bool MqttManager::isConnected()
     return _client.connected();
 }
 
-void MqttManager::reconnect(const char* clientId)
+void MqttManager::reconnect(const char* clientId, const char* username, const char* password)
 {
     static unsigned long ultimaTentativa = 0;
 
@@ -43,7 +43,7 @@ void MqttManager::reconnect(const char* clientId)
 
     ultimaTentativa = millis();
 
-    connect(clientId);
+    connect(clientId, username, password);
 }
 
 void MqttManager::loop()
@@ -53,7 +53,7 @@ void MqttManager::loop()
 
 bool MqttManager::publish(const char* payload)
 {
-    if (!client.connected())
+    if (!_client.connected())
         return;
         
     return _client.publish(_topic, payload);

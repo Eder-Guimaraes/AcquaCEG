@@ -2,6 +2,7 @@
 #define WIFI_MANAGER_H
 
 #include <WiFiS3.h>
+#include <WiFiSSLClient.h>
 
 class WifiManager
 {
@@ -11,13 +12,13 @@ public:
     bool isConnected();
     void reconnect();
 
-    WiFiClient& getClient();
+    WiFiSSLClient& getClient();
 
 private:
     const char* _ssid;
     const char* _password;
 
-    WiFiClient _client;
+    WiFiSSLClient _client;
 };
 
 #endif

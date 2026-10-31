@@ -51,7 +51,7 @@ void WifiManager::reconnect()
     WiFi.begin(_ssid, _password);
 }
 
-WiFiClient& WifiManager::getClient()
+WiFiSSLClient& WifiManager::getClient()
 {
     return _client;
 }

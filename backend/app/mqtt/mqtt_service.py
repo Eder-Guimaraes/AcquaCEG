@@ -1,7 +1,7 @@
 import json
 import paho.mqtt.client as mqtt
 
-from app.core.config import MQTT_TOPIC, MQTT_PORT, MQTT_BROKER
+from app.core.config import MQTT_TOPIC, MQTT_PORT, MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD, MQTT_CLIENT_ID
 
 class MQTTService:
 
@@ -13,8 +13,15 @@ class MQTTService:
 
         self.client = mqtt.Client(
             mqtt.CallbackAPIVersion.VERSION2,
-            client_id="acquaceg-backend"
+            client_id=MQTT_CLIENT_ID
         )
+
+        self.client.username_pw_set(
+            MQTT_USERNAME,
+            MQTT_PASSWORD
+        )
+
+        self.client.tls_set(ca_certs="app/certs/emqxsl-ca.crt")
 
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
@@ -27,7 +34,8 @@ class MQTTService:
         self.client.loop_start()
 
     def on_connect(self, client, userdata, flags, reason_code, properties):
-        print(f"Reason code: {reason_code} ({reason_code.getName()})")
+        print(f"Reason code: {reason_code}")
+        print(f"Descrição: {reason_code.getName()}")
 
         if reason_code == 0:
             print("Conectado ao broker MQTT!")

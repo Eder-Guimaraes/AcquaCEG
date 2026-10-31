@@ -13,9 +13,17 @@ public:
 
     void begin();
 
-    bool connect(const char* clientId);
+    bool connect(
+        const char* clientId,
+        const char* username,
+        const char* password
+    );
 
-    void reconnect(const char* clientId);
+    void reconnect(
+        const char* clientId,
+        const char* username,
+        const char* password
+    );
 
     bool isConnected();
 
